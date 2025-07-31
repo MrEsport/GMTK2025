@@ -28,4 +28,10 @@ public class PlaneController : MonoBehaviour
     {
         turnSpeed = context.performed ? context.ReadValue<Vector2>().x * turnSpeedMax : 0f;
     }
+
+    public void OnRespawnInputReceived(InputAction.CallbackContext context)
+    {
+        if (!context.started) return;
+        transform.position = Vector3.zero;
+    }
 }
