@@ -68,4 +68,10 @@ public class SmokeDropController : MonoBehaviour
         var part = Instantiate(smokeParticle, transform.position, Quaternion.identity);
         SmokeManager.Instance.RegisterSmoke(part);
     }
+
+    private void OnGUI()
+    {
+        if (infiniteReserve)
+            GUI.TextField(new Rect(0, 32, 200, 30), $"Infinite Reserves ON");
+    }
 }
