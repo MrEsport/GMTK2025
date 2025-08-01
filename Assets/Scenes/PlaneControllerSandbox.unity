@@ -150,7 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteTransform: {fileID: 647815426}
   moveSpeed: 7
-  turnSpeedMax: 33
+  turnSpeedMax: 38
   turnSpeed: 0
 --- !u!4 &3447023
 Transform:
@@ -335,7 +335,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -439,6 +439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f777cbff5b62b0f45bd2f6b981aeea60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetsPositions: []
 --- !u!4 &1902057995
 Transform:
   m_ObjectHideFlags: 0
