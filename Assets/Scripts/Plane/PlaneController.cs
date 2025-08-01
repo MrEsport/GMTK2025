@@ -4,15 +4,16 @@ using UnityEngine.InputSystem;
 public class PlaneController : MonoBehaviour
 {
     [SerializeField] private Transform spriteTransform;
+    [SerializeField] private GameStats stats;
 
-    [SerializeField] float moveSpeed = 6;
-    [SerializeField] float turnSpeedMax = 25f;
     [SerializeField, Range(-20f, 20f)] float turnSpeed;
 
     private Vector2 moveDirection = Vector2.up;
 
     private void FixedUpdate()
     {
+        float moveSpeed = stats.Plane.moveSpeed;
+
         moveDirection = Quaternion.AngleAxis(turnSpeed * moveSpeed * Time.fixedDeltaTime, Vector3.back) * moveDirection;
 
         spriteTransform.rotation = Quaternion.LookRotation(Vector3.forward, moveDirection);
@@ -26,7 +27,7 @@ public class PlaneController : MonoBehaviour
 
     public void OnMoveInputReceived(InputAction.CallbackContext context)
     {
-        turnSpeed = context.performed ? context.ReadValue<Vector2>().x * turnSpeedMax : 0f;
+        turnSpeed = context.performed ? context.ReadValue<Vector2>().x * stats.Plane.turnSpeedMax : 0f;
     }
 
     public void OnRespawnInputReceived(InputAction.CallbackContext context)

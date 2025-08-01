@@ -5,10 +5,8 @@ using UnityEngine.InputSystem;
 public class SmokeDropController : MonoBehaviour
 {
     [SerializeField] GameObject smokeParticle;
+    [SerializeField] GameStats stats;
 
-    [SerializeField] float reserveMaxAmount;
-    [SerializeField] float reserveDropAmount;
-    [SerializeField] float reserveDropPerSecond;
     [SerializeField] bool infiniteReserve = false;
 
     private bool isDroppingInput = false;
@@ -18,7 +16,7 @@ public class SmokeDropController : MonoBehaviour
 
     private void Start()
     {
-        reserveAmount = reserveMaxAmount;
+        reserveAmount = stats.SmokeDrop.reserveMaxAmount;
     }
 
     public void OnDropSmokeInputReceived(InputAction.CallbackContext context)
@@ -58,7 +56,7 @@ public class SmokeDropController : MonoBehaviour
         while (isDroppingInput && (reserveAmount > 0f || infiniteReserve))
         {
             DropSmoke();
-            yield return new WaitForSeconds(1f / reserveDropPerSecond);
+            yield return new WaitForSeconds(1f / stats.SmokeDrop.reserveDropPerSecond);
         }
 
         smokeDropRoutine = null;
@@ -66,7 +64,7 @@ public class SmokeDropController : MonoBehaviour
 
     private void DropSmoke()
     {
-        reserveAmount = Mathf.Max(reserveAmount - reserveDropAmount, 0f);
+        reserveAmount = Mathf.Max(reserveAmount - stats.SmokeDrop.reserveDropAmount, 0f);
         var part = Instantiate(smokeParticle, transform.position, Quaternion.identity);
         SmokeManager.Instance.RegisterSmoke(part);
     }

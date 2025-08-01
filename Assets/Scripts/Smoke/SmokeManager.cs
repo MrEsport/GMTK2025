@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,10 +13,14 @@ public class SmokeManager : MonoBehaviour
     public static SmokeManager Instance { get => instance; }
 
     [SerializeField] GameObject smokeTargetPrefab;
+    [SerializeField] GameStats stats;
 
     private List<SmokePoint> smokeParticles = new();
     [SerializeField] private List<Vector2> targetsPositions = new();
     private List<SmokePointTarget> smokePointTargets = new();
+
+    private Coroutine endingRoutine = null;
+    private bool isEnding = false;
 
     private void Awake()
     {
@@ -34,18 +39,19 @@ public class SmokeManager : MonoBehaviour
 
     private void Update()
     {
-        if (smokeParticles.Count <= 1) return;
+        if (isEnding) return;
+        if (targetsPositions.Count <= 0 || smokeParticles.Count <= 1) return;
 
         foreach (var point in smokeParticles)
         {
             if (!smokePointTargets.Any(t => !t.isValid))
             {
                 // ALL TARGETS VALID : RESET TARGETS
-                ResetTargets();
+                endingRoutine = StartCoroutine(WaitReset(2.5f));
                 break;
             }
 
-            var closePoints = smokePointTargets.Where(t => !t.isValid && Vector2.SqrMagnitude(t.position - point.position) <= .25f * .25f);
+            var closePoints = smokePointTargets.Where(t => !t.isValid && Vector2.SqrMagnitude(t.position - point.position) <= Mathf.Pow(stats.Score.smokeValidRange / 2f, 2));
             if (closePoints.Count() <= 0) continue;
 
             closePoints.First().SetValid(point);
@@ -53,7 +59,7 @@ public class SmokeManager : MonoBehaviour
 
         foreach (var target in smokePointTargets.Where(t => t.isValid))
         {
-            DebugExtension.DrawCircle(target.validatingPoint.position, .25f, 10, ColorExtension.red);
+            DebugExtension.DrawCircle(target.validatingPoint.position, stats.Score.smokeValidRange / 2f, 10, ColorExtension.red);
             Debug.DrawLine(target.validatingPoint.position, target.position, ColorExtension.darkRed);
         }
     }
@@ -83,18 +89,31 @@ public class SmokeManager : MonoBehaviour
         smokeParticles.Clear();
     }
 
-    private void GeneratePointTargets()
+    private void ClearTargets()
     {
         foreach (var target in smokePointTargets)
             target.Dispose();
         smokePointTargets.Clear();
         targetsPositions.Clear();
+    }
 
-        int N = Random.Range(4, 8);
+    private void GeneratePointTargets()
+    {
+        ClearTargets();
+
+        int N = Random.Range(1, 8);
 
         for (; N > 0; --N)
         {
-            targetsPositions.Add(RandomExtension.PointInsideBox(Vector2.zero, 10f));
+            var start = RandomExtension.PointInsideBox(Vector2.zero, 16f, 10f);
+            var end = RandomExtension.PointOnCircle(start, Random.Range(2f, 7f));
+            var distance = (start - end).magnitude;
+            float t = 0f;
+            while (t <= distance)
+            {
+                targetsPositions.Add(Vector2.Lerp(start, end, Mathf.InverseLerp(0f, distance, t)));
+                t += stats.smokeDropDistance;
+            }
         }
 
         smokePointTargets = targetsPositions.Select(p => new SmokePointTarget(p)).ToList();
@@ -111,6 +130,16 @@ public class SmokeManager : MonoBehaviour
         GeneratePointTargets();
     }
 
+    private IEnumerator WaitReset(float waitTime)
+    {
+        isEnding = true;
+        yield return new WaitForSeconds(waitTime);
+        ResetTargets();
+
+        endingRoutine = null;
+        isEnding = false;
+    }
+
     private void OnDrawGizmos()
     {
         if (smokePointTargets.Count <= 0) return;
@@ -118,7 +147,7 @@ public class SmokeManager : MonoBehaviour
         foreach (var target in smokePointTargets)
         {
             Gizmos.color = target.isValid ? Color.green : ColorExtension.orange;
-            Gizmos.DrawWireSphere(target.position, .25f);
+            Gizmos.DrawWireSphere(target.position, stats.Score.smokeValidRange / 2f);
         }
         Gizmos.color = pastColor;
     }
@@ -126,12 +155,18 @@ public class SmokeManager : MonoBehaviour
     private void OnGUI()
     {
         int validTargets = smokePointTargets.Count(t => t.isValid);
-        GUI.TextField(new Rect(0, 0, 500, 25), $"Targets : {validTargets} / {smokePointTargets.Count()}");
+        GUI.TextField(new Rect(0, 0, 250, 30), $"Targets : {validTargets} / {smokePointTargets.Count()}");
 
-        if (GUI.Button(new Rect(Screen.width - 200, 0, 200, 25), "RESET TARGETS"))
+        if (isEnding)
+            GUI.TextField(new Rect(Screen.width / 2f - 250f / 2f, Screen.height - 32, 250, 35), $"Nice Job ! Resetting ...");
+
+        if (GUI.Button(new Rect(Screen.width - 200, 0, 200, 30), "RESET TARGETS"))
             ResetTargets();
-        if (GUI.Button(new Rect(Screen.width - 200, 28, 200, 25), "CLEAR SMOKE"))
+        if (GUI.Button(new Rect(Screen.width - 200, 32, 200, 30), "CLEAR SMOKE"))
             ClearSmoke();
+
+        if (GUI.Button(new Rect(Screen.width - 222, Screen.height - 32, 220, 30), "~I JUST WANT TO DRAW~"))
+            ClearTargets();
     }
 }
 
