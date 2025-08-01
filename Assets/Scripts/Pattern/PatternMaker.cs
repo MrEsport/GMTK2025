@@ -7,6 +7,7 @@ public class PatternMaker : MonoBehaviour
     [SerializeField, Required] GameStats stats;
     [SerializeField, Required] Transform startHandle;
     [SerializeField, Required] Transform endHandle;
+    [SerializeField, Required] PatternHolder patternHolder;
 
     private List<Vector2> patternPositions = new List<Vector2>();
 
@@ -78,4 +79,11 @@ public class PatternMaker : MonoBehaviour
 
     [Button("Clear Current Positions"), ShowIf(nameof(StartedPatternPositions))]
     private void ClearPositions() => patternPositions.Clear();
+
+
+    [Button("Make Pattern"), ShowIf(nameof(StartedPatternPositions))]
+    private void ValidatePattern()
+    {
+        patternHolder.AddPattern(patternPositions.ToArray());
+    }
 }

@@ -438,6 +438,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   smokeTargetPrefab: {fileID: 993546803517917659, guid: 069fe7a4c934e4d438633e5ca84120c0, type: 3}
   stats: {fileID: 11400000, guid: 0f2bef4e0444d0a4eb4a45286a4d5493, type: 2}
+  patternHolder: {fileID: 11400000, guid: 21140dbffffcbef418b943a790669b42, type: 2}
   targetsPositions: []
 --- !u!4 &1902057995
 Transform:

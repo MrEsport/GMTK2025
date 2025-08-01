@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,11 +13,12 @@ public class SmokeManager : MonoBehaviour
     private static SmokeManager instance;
     public static SmokeManager Instance { get => instance; }
 
-    [SerializeField] GameObject smokeTargetPrefab;
-    [SerializeField] GameStats stats;
+    [SerializeField, Required] GameObject smokeTargetPrefab;
+    [SerializeField, Required] GameStats stats;
+    [SerializeField, Required] PatternHolder patternHolder;
 
     private List<SmokePoint> smokeParticles = new();
-    [SerializeField] private List<Vector2> targetsPositions = new();
+    [SerializeField] private Vector2[] targetsPositions;
     private List<SmokePointTarget> smokePointTargets = new();
 
     private Coroutine endingRoutine = null;
@@ -40,7 +42,7 @@ public class SmokeManager : MonoBehaviour
     private void Update()
     {
         if (isEnding) return;
-        if (targetsPositions.Count <= 0 || smokeParticles.Count <= 1) return;
+        if (targetsPositions.Length <= 0 || smokeParticles.Count <= 1) return;
 
         foreach (var point in smokeParticles)
         {
@@ -94,27 +96,12 @@ public class SmokeManager : MonoBehaviour
         foreach (var target in smokePointTargets)
             target.Dispose();
         smokePointTargets.Clear();
-        targetsPositions.Clear();
+        targetsPositions = new Vector2[0];
     }
 
     private void GeneratePointTargets()
     {
-        ClearTargets();
-
-        int N = Random.Range(1, 8);
-
-        for (; N > 0; --N)
-        {
-            var start = RandomExtension.PointInsideBox(Vector2.zero, 16f, 10f);
-            var end = RandomExtension.PointOnCircle(start, Random.Range(2f, 7f));
-            var distance = (start - end).magnitude;
-            float t = 0f;
-            while (t <= distance)
-            {
-                targetsPositions.Add(Vector2.Lerp(start, end, Mathf.InverseLerp(0f, distance, t)));
-                t += stats.smokeDropDistance;
-            }
-        }
+        targetsPositions = patternHolder.Library.Random().patternPositions;
 
         smokePointTargets = targetsPositions.Select(p => new SmokePointTarget(p)).ToList();
 
@@ -124,18 +111,15 @@ public class SmokeManager : MonoBehaviour
         });
     }
 
-    private void ResetTargets()
-    {
-        ClearSmoke();
-        GeneratePointTargets();
-    }
-
     private IEnumerator WaitReset(float waitTime)
     {
         isEnding = true;
+        ClearTargets();
+        
         yield return new WaitForSeconds(waitTime);
-        ResetTargets();
 
+        ClearSmoke();
+        GeneratePointTargets();
         endingRoutine = null;
         isEnding = false;
     }
@@ -161,12 +145,19 @@ public class SmokeManager : MonoBehaviour
             GUI.TextField(new Rect(Screen.width / 2f - 250f / 2f, Screen.height - 32, 250, 35), $"Nice Job ! Resetting ...");
 
         if (GUI.Button(new Rect(Screen.width - 200, 0, 200, 30), "RESET TARGETS"))
-            ResetTargets();
+        {
+            ClearSmoke();
+            ClearTargets();
+            GeneratePointTargets();
+        }
         if (GUI.Button(new Rect(Screen.width - 200, 32, 200, 30), "CLEAR SMOKE"))
             ClearSmoke();
 
         if (GUI.Button(new Rect(Screen.width - 222, Screen.height - 32, 220, 30), "~I JUST WANT TO DRAW~"))
+        {
+            ClearSmoke();
             ClearTargets();
+        }
     }
 }
 

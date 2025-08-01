@@ -111,3 +111,4 @@ MonoBehaviour:
   stats: {fileID: 11400000, guid: 0f2bef4e0444d0a4eb4a45286a4d5493, type: 2}
   startHandle: {fileID: 3823421816401341271}
   endHandle: {fileID: 5447278215557733018}
+  patternHolder: {fileID: 11400000, guid: 21140dbffffcbef418b943a790669b42, type: 2}
