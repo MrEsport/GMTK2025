@@ -5,11 +5,19 @@ using UnityEngine;
 public class PatternMaker : MonoBehaviour
 {
     [SerializeField, Required] GameStats stats;
-    [SerializeField, Required] Transform startHandle;
-    [SerializeField, Required] Transform endHandle;
     [SerializeField, Required] PatternHolder patternHolder;
 
+    [SerializeField, Required] public Transform startHandle;
+    [SerializeField, Required] public Transform endHandle;
+    [SerializeField, Required] public Transform startTangent;
+    [SerializeField, Required] public Transform endTangent;
+
+    [SerializeField] bool useBezier = false;
+    [SerializeField, Range(0f, 2f), ShowIf(nameof(useBezier))] float bezierPointsAmountFactor;
+
     private List<Vector2> patternPositions = new List<Vector2>();
+
+    private Vector2[] pointsPositions;
 
     private bool RequiredComponentsValid { get => stats != null && startHandle != null && endHandle != null; }
     private bool StartedPatternPositions { get => patternPositions.Count > 0; }
@@ -32,20 +40,25 @@ public class PatternMaker : MonoBehaviour
         Gizmos.DrawSphere(endHandle.position, .33f);
         Gizmos.color = ColorExtension.teal;
         Gizmos.DrawSphere(startHandle.position, .33f);
-        Debug.DrawLine(startHandle.position, endHandle.position, Color.yellow);
 
         var direction = endHandle.position - startHandle.position;
-        int N = Mathf.FloorToInt(direction.magnitude / stats.smokeDropDistance);
+        int N = Mathf.FloorToInt(direction.magnitude * (useBezier ? bezierPointsAmountFactor : 1f) / stats.smokeDropDistance);
         direction = direction.normalized * stats.smokeDropDistance;
 
         Gizmos.color = Color.yellow;
 
-        var positions = GetPositionsBetween(startHandle.position, endHandle.position);
+        pointsPositions = useBezier ?
+            CurveExtension.Bezier2D(startHandle.position, startTangent.position, endTangent.position, endHandle.position, N):
+            GetPositionsBetween(startHandle.position, endHandle.position);
 
         Vector2 p;
-        for (int i = 0; i < positions.Length; ++i)
+        for (int i = 0; i < pointsPositions.Length; ++i)
         {
-            p = positions[i];
+            p = pointsPositions[i];
+
+            if (i != 0)
+                Debug.DrawLine(pointsPositions[i - 1], p, Color.yellow);
+
             Gizmos.DrawSphere(p, .15f);
             Gizmos.DrawWireSphere(p, stats.Score.smokeValidRange / 2f);
         }
@@ -68,13 +81,7 @@ public class PatternMaker : MonoBehaviour
     [Button("Add Positions"), ShowIf(nameof(RequiredComponentsValid))]
     private void AddPosition()
     {
-        if (!RequiredComponentsValid)
-        {
-            Debug.LogError($"Missing Components in PatternMaker !");
-            return;
-        }
-
-        patternPositions.AddRange(GetPositionsBetween(startHandle.position, endHandle.position));
+        patternPositions.AddRange(pointsPositions);
     }
 
     [Button("Clear Current Positions"), ShowIf(nameof(StartedPatternPositions))]
