@@ -149,6 +149,8 @@ MonoBehaviour:
   endTangent: {fileID: 8507542664350279984}
   useBezier: 0
   bezierPointsAmountFactor: 1
+  trimPointsByDistance: 1
+  trimRangeFactor: 0.45
 --- !u!1 &6817856445379409684
 GameObject:
   m_ObjectHideFlags: 0

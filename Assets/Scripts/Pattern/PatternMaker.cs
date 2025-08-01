@@ -1,19 +1,23 @@
 using NaughtyAttributes;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PatternMaker : MonoBehaviour
 {
-    [SerializeField, Required] GameStats stats;
-    [SerializeField, Required] PatternHolder patternHolder;
+    [SerializeField, BoxGroup("Components"), Required] GameStats stats;
+    [SerializeField, BoxGroup("Components"), Required] PatternHolder patternHolder;
 
-    [SerializeField, Required] public Transform startHandle;
-    [SerializeField, Required] public Transform endHandle;
-    [SerializeField, Required] public Transform startTangent;
-    [SerializeField, Required] public Transform endTangent;
+    [SerializeField, BoxGroup("Handles"), Required] public Transform startHandle;
+    [SerializeField, BoxGroup("Handles"), Required] public Transform endHandle;
+    [SerializeField, BoxGroup("Handles"), Required] public Transform startTangent;
+    [SerializeField, BoxGroup("Handles"), Required] public Transform endTangent;
 
-    [SerializeField] bool useBezier = false;
-    [SerializeField, Range(0f, 2f), ShowIf(nameof(useBezier))] float bezierPointsAmountFactor;
+    [SerializeField, BoxGroup("Bezier")] bool useBezier = false;
+    [SerializeField, Range(0f, 2f), BoxGroup("Bezier"), ShowIf(nameof(useBezier))] float bezierPointsAmountFactor;
+
+    [SerializeField, BoxGroup, ShowIf(nameof(StartedPatternPositions))] bool trimPointsByDistance = false;
+    [SerializeField, Range(0f, 2f), BoxGroup, ShowIf(EConditionOperator.And, nameof(StartedPatternPositions), nameof(trimPointsByDistance))] float trimRangeFactor;
 
     private List<Vector2> patternPositions = new List<Vector2>();
 
@@ -51,6 +55,9 @@ public class PatternMaker : MonoBehaviour
             CurveExtension.Bezier2D(startHandle.position, startTangent.position, endTangent.position, endHandle.position, N):
             GetPositionsBetween(startHandle.position, endHandle.position);
 
+        if (StartedPatternPositions && trimPointsByDistance)
+            pointsPositions = TrimPointsByDistance(pointsPositions);
+
         Vector2 p;
         for (int i = 0; i < pointsPositions.Length; ++i)
         {
@@ -76,6 +83,11 @@ public class PatternMaker : MonoBehaviour
             positions[i] = start + (direction * i);
 
         return positions;
+    }
+
+    private Vector2[] TrimPointsByDistance(Vector2[] points)
+    {
+        return points.Where(point => !patternPositions.Any(pos => (point - pos).sqrMagnitude < stats.Score.smokeValidRange * trimRangeFactor)).ToArray();
     }
 
     [Button("Add Positions"), ShowIf(nameof(RequiredComponentsValid))]
