@@ -11,6 +11,8 @@ public class SmokeManager : MonoBehaviour
     private static SmokeManager instance;
     public static SmokeManager Instance { get => instance; }
 
+    [SerializeField] GameObject smokeTargetPrefab;
+
     private List<SmokePoint> smokeParticles = new();
     [SerializeField] private List<Vector2> targetsPositions = new();
     private List<SmokePointTarget> smokePointTargets = new();
@@ -83,6 +85,9 @@ public class SmokeManager : MonoBehaviour
 
     private void GeneratePointTargets()
     {
+        foreach (var target in smokePointTargets)
+            target.Dispose();
+        smokePointTargets.Clear();
         targetsPositions.Clear();
 
         int N = Random.Range(4, 8);
@@ -93,6 +98,11 @@ public class SmokeManager : MonoBehaviour
         }
 
         smokePointTargets = targetsPositions.Select(p => new SmokePointTarget(p)).ToList();
+
+        smokePointTargets.ForEach(t =>
+        {
+            Instantiate(smokeTargetPrefab).GetComponent<SmokeTargetHandler>().Init(t);
+        });
     }
 
     private void ResetTargets()
@@ -144,12 +154,15 @@ public class SmokePoint : IDisposable
     }
 }
 
-public class SmokePointTarget
+public class SmokePointTarget : IDisposable
 {
     public Vector2 position { get; private set; }
     public bool isValid { get; private set; }
 
     public SmokePoint validatingPoint { get; private set; }
+
+    public event Action<bool> OnValidate = _ => { };
+    public event Action OnDestroy = () => { };
 
     public SmokePointTarget(Vector2 position)
     {
@@ -161,5 +174,11 @@ public class SmokePointTarget
     {
         validatingPoint = point;
         isValid = true;
+        OnValidate(true);
+    }
+
+    public void Dispose()
+    {
+        OnDestroy();
     }
 }
