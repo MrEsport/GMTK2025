@@ -101,3 +101,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sr: {fileID: 7311547766570667102}
+  invalideColor: {r: 1, g: 0.5621151, b: 0.1273585, a: 0.7490196}
+  validColor: {r: 1, g: 1, b: 1, a: 0}

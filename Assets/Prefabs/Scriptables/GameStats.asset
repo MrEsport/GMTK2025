@@ -20,4 +20,5 @@ MonoBehaviour:
     <reserveDropAmount>k__BackingField: 1
     <reserveDropPerSecond>k__BackingField: 13
   <Score>k__BackingField:
-    <smokeValidRange>k__BackingField: 1
+    <smokeValidRange>k__BackingField: 1.75
+    <smokePerfectRange>k__BackingField: 0.85

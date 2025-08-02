@@ -34,14 +34,14 @@ public class PatternMaker : MonoBehaviour
     private void OnDrawGizmos()
     {
         if (StartedPatternPositions)
-        {
-            Gizmos.color = ColorExtension.orange;
             patternPositions.ForEach(p =>
             {
-                Gizmos.DrawSphere(p, .15f);
+                Gizmos.color = ColorExtension.darkRed;
                 Gizmos.DrawWireSphere(p, stats.Score.smokeValidRange / 2f);
+                Gizmos.color = ColorExtension.orange;
+                Gizmos.DrawSphere(p, .15f);
+                Gizmos.DrawWireSphere(p, stats.Score.smokePerfectRange / 2f);
             });
-        }
 
         if (!RequiredComponentsValid) return;
 
@@ -53,8 +53,6 @@ public class PatternMaker : MonoBehaviour
         var direction = endHandle.position - startHandle.position;
         int N = Mathf.FloorToInt(direction.magnitude * pointsAmountFactor / stats.smokeDropDistance);
         direction = direction.normalized * stats.smokeDropDistance;
-
-        Gizmos.color = Color.yellow;
 
         pointsPositions = mode switch
         {
@@ -75,8 +73,11 @@ public class PatternMaker : MonoBehaviour
             if (i != 0)
                 Debug.DrawLine(pointsPositions[i - 1], p, Color.yellow);
 
-            Gizmos.DrawSphere(p, .15f);
+            Gizmos.color = ColorExtension.lightRed;
             Gizmos.DrawWireSphere(p, stats.Score.smokeValidRange / 2f);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(p, .15f);
+            Gizmos.DrawWireSphere(p, stats.Score.smokePerfectRange / 2f);
         }
     }
 

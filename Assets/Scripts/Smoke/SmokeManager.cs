@@ -39,26 +39,7 @@ public class SmokeManager : MonoBehaviour
         if (isPatternCompleted) return;
         if (targetsPositions.Length <= 0 || smokeParticles.Count <= 1) return;
 
-        foreach (var point in smokeParticles)
-        {
-            if (!smokePointTargets.Any(t => !t.isValid))
-            {
-                // ALL TARGETS VALID : RESET TARGETS
-                OnPatternValidated.Invoke();
-                break;
-            }
-
-            var closePoints = smokePointTargets.Where(t => !t.isValid && Vector2.SqrMagnitude(t.position - point.position) <= Mathf.Pow(stats.Score.smokeValidRange / 2f, 2));
-            if (closePoints.Count() <= 0) continue;
-
-            closePoints.First().SetValid(point);
-        }
-
-        foreach (var target in smokePointTargets.Where(t => t.isValid))
-        {
-            DebugExtension.DrawCircle(target.validatingPoint.position, stats.Score.smokeValidRange / 2f, 10, ColorExtension.red);
-            Debug.DrawLine(target.validatingPoint.position, target.position, ColorExtension.darkRed);
-        }
+        UpdateSmokePointsStatus();
     }
 
     public void OnClearSmokeInputReceived(InputAction.CallbackContext context)
@@ -108,16 +89,32 @@ public class SmokeManager : MonoBehaviour
         Destroy(obj);
     }
 
+    private void UpdateSmokePointsStatus()
+    {
+        foreach (var point in smokeParticles)
+        {
+            if (!smokePointTargets.Any(t => !t.isValid))
+            {
+                // ALL TARGETS VALID : RESET TARGETS
+                OnPatternValidated.Invoke();
+                break;
+            }
+
+            var closePoints = smokePointTargets.Where(t => !t.isValid && Vector2.SqrMagnitude(t.position - point.position) <= Mathf.Pow(stats.Score.smokeValidRange / 2f, 2));
+            if (closePoints.Count() <= 0) continue;
+
+            closePoints.First().SetValid(point, Vector2.SqrMagnitude(point.position - closePoints.First().position) <= Mathf.Pow(stats.Score.smokePerfectRange / 2f, 2));
+        }
+    }
+
     private void OnDrawGizmos()
     {
         if (smokePointTargets.Count <= 0) return;
-        Color pastColor = Gizmos.color;
         foreach (var target in smokePointTargets)
         {
-            Gizmos.color = target.isValid ? Color.green : ColorExtension.orange;
-            Gizmos.DrawWireSphere(target.position, stats.Score.smokeValidRange / 2f);
+            if (!target.isValid) continue;
+            Debug.DrawLine(target.position, target.validatingPoint.position, target.isPerfect ? ColorExtension.lime : ColorExtension.lightRed);
         }
-        Gizmos.color = pastColor;
     }
 
     private void OnGUI()
@@ -165,6 +162,7 @@ public class SmokePointTarget : IDisposable
 {
     public Vector2 position { get; private set; }
     public bool isValid { get; private set; }
+    public bool isPerfect { get; private set; }
 
     public SmokePoint validatingPoint { get; private set; }
 
@@ -175,12 +173,16 @@ public class SmokePointTarget : IDisposable
     {
         this.position = position;
         isValid = false;
+        isPerfect = false;
     }
 
-    public void SetValid(SmokePoint point)
+    public void SetValid(SmokePoint point, bool isPerfect = false)
     {
         validatingPoint = point;
+
         isValid = true;
+        this.isPerfect = isPerfect;
+
         OnValidate(true);
     }
 

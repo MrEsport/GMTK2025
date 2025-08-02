@@ -3,6 +3,8 @@ using UnityEngine;
 public class SmokeTargetHandler : MonoBehaviour
 {
     [SerializeField] SpriteRenderer sr;
+    [SerializeField] Color invalideColor;
+    [SerializeField] Color validColor;
 
     public void Init(SmokePointTarget target)
     {
@@ -14,6 +16,6 @@ public class SmokeTargetHandler : MonoBehaviour
 
     private void OnTargetValidate(bool isValid)
     {
-        sr.color = isValid ? Color.green : ColorExtension.orange;
+        sr.color = isValid ? validColor : invalideColor;
     }
 }

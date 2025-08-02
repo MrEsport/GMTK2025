@@ -30,5 +30,6 @@ public class GameStats : ScriptableObject
     public class ScoreStats
     {
         [field: SerializeField] public float smokeValidRange { get; private set; }
+        [field: SerializeField] public float smokePerfectRange { get; private set; }
     }
 }
