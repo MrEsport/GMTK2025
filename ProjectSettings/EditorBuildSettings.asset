@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PlaneControllerSandbox.unity
     guid: 0c5891f56825cee45af660a9c5c3f21f
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 5d4f9311b21d7bb4cb09e6094ac27303
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
