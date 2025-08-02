@@ -40,4 +40,30 @@ public static class CurveExtension
                3 * (1 - t) * Mathf.Pow(t, 2) * endTangent +
                Mathf.Pow(t, 3) * end;
     }
+
+    public static Vector2[] Circle2D(Vector2 pointA, Vector2 mirrorPointB, int points, float arcThreshold = 1f)
+    {
+        if (points <= 0) return new Vector2[0];
+
+        int arcPoints = Mathf.FloorToInt(points * arcThreshold);
+        float r = Vector2.Distance(pointA, mirrorPointB) / 2f;
+        Vector2 center = pointA + (mirrorPointB - pointA).normalized * r;
+        float angleStep = (360.0f / points) * Mathf.Deg2Rad;
+        float startAngle = Vector2.SignedAngle(Vector2.right, (pointA - center).normalized) * Mathf.Deg2Rad;
+
+        Vector2[] positions = new Vector2[arcPoints];
+        Vector2 p;
+        for (int i = 0; i < arcPoints; i++)
+        {
+            p.x = Mathf.Cos(angleStep * i + startAngle);
+            p.y = Mathf.Sin(angleStep * i + startAngle);
+
+            p *= r;
+            p += center;
+
+            positions[i] = p;
+        }
+
+        return positions;
+    }
 }

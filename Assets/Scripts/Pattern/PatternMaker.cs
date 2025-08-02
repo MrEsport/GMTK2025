@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PatternMaker : MonoBehaviour
 {
+    private enum PatternMode { STRAIGHT, BEZIER, CIRCLE };
+
     [SerializeField, BoxGroup("Components"), Required] GameStats stats;
     [SerializeField, BoxGroup("Components"), Required] PatternHolder patternHolder;
 
@@ -13,8 +15,9 @@ public class PatternMaker : MonoBehaviour
     [SerializeField, BoxGroup("Handles"), Required] public Transform startTangent;
     [SerializeField, BoxGroup("Handles"), Required] public Transform endTangent;
 
-    [SerializeField, BoxGroup("Bezier")] bool useBezier = false;
-    [SerializeField, Range(0f, 2f), BoxGroup("Bezier"), ShowIf(nameof(useBezier))] float bezierPointsAmountFactor;
+    [SerializeField, BoxGroup] PatternMode mode;
+    [SerializeField, Range(0f, 2f), BoxGroup] float pointsAmountFactor;
+    [SerializeField, Range(0f, 1f), BoxGroup, ShowIf(nameof(UseCircle))] float circleArcThreshold = 1f;
 
     [SerializeField, BoxGroup, ShowIf(nameof(StartedPatternPositions))] bool trimPointsByDistance = false;
     [SerializeField, Range(0f, 2f), BoxGroup, ShowIf(EConditionOperator.And, nameof(StartedPatternPositions), nameof(trimPointsByDistance))] float trimRangeFactor;
@@ -25,6 +28,8 @@ public class PatternMaker : MonoBehaviour
 
     private bool RequiredComponentsValid { get => stats != null && startHandle != null && endHandle != null; }
     private bool StartedPatternPositions { get => patternPositions.Count > 0; }
+    private bool UseBezier { get => mode == PatternMode.BEZIER; }
+    private bool UseCircle { get => mode == PatternMode.CIRCLE; }
 
     private void OnDrawGizmos()
     {
@@ -40,20 +45,24 @@ public class PatternMaker : MonoBehaviour
 
         if (!RequiredComponentsValid) return;
 
-        Gizmos.color = ColorExtension.cyan;
+        Gizmos.color = ColorExtension.darkBlue;
         Gizmos.DrawSphere(endHandle.position, .33f);
         Gizmos.color = ColorExtension.teal;
         Gizmos.DrawSphere(startHandle.position, .33f);
 
         var direction = endHandle.position - startHandle.position;
-        int N = Mathf.FloorToInt(direction.magnitude * (useBezier ? bezierPointsAmountFactor : 1f) / stats.smokeDropDistance);
+        int N = Mathf.FloorToInt(direction.magnitude * pointsAmountFactor / stats.smokeDropDistance);
         direction = direction.normalized * stats.smokeDropDistance;
 
         Gizmos.color = Color.yellow;
 
-        pointsPositions = useBezier ?
-            CurveExtension.Bezier2D(startHandle.position, startTangent.position, endTangent.position, endHandle.position, N):
-            GetPositionsBetween(startHandle.position, endHandle.position);
+        pointsPositions = mode switch
+        {
+            PatternMode.STRAIGHT => GetPositionsBetween(startHandle.position, endHandle.position, N),
+            PatternMode.BEZIER => CurveExtension.Bezier2D(startHandle.position, startTangent.position, endTangent.position, endHandle.position, N),
+            PatternMode.CIRCLE => CurveExtension.Circle2D(startHandle.position, endHandle.position, N * 2 - 2, circleArcThreshold),
+            _ => throw new System.NotImplementedException()
+        };
 
         if (StartedPatternPositions && trimPointsByDistance)
             pointsPositions = TrimPointsByDistance(pointsPositions);
@@ -71,16 +80,14 @@ public class PatternMaker : MonoBehaviour
         }
     }
 
-    private Vector2[] GetPositionsBetween(Vector2 start, Vector2 end)
+    private Vector2[] GetPositionsBetween(Vector2 start, Vector2 end, int points)
     {
         var direction = end - start;
-        int N = Mathf.FloorToInt(direction.magnitude / stats.smokeDropDistance);
-        direction = direction.normalized * stats.smokeDropDistance;
 
-        Vector2[] positions = new Vector2[N + 1];
+        Vector2[] positions = new Vector2[points];
 
-        for (int i = 0; i <= N; ++i)
-            positions[i] = start + (direction * i);
+        for (int i = 0; i < points; ++i)
+            positions[i] = start + ((float)i / (points - 1) * direction);
 
         return positions;
     }
