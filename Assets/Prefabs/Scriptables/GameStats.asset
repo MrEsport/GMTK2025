@@ -22,3 +22,5 @@ MonoBehaviour:
   <Score>k__BackingField:
     <smokeValidRange>k__BackingField: 1.75
     <smokePerfectRange>k__BackingField: 0.85
+    <distanceScoreRate>k__BackingField: 30
+    <perfectBonusScore>k__BackingField: 10

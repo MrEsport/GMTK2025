@@ -1,11 +1,12 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] float inbetweenPatternDuration = 2.5f;
 
-    private Coroutine endingRoutine = null;
+    private bool isEnding = false;
 
     private void Start()
     {
@@ -27,25 +28,31 @@ public class GameManager : MonoBehaviour
 
     private void PatternValidated()
     {
-        if (endingRoutine != null) return;
-
-        endingRoutine = StartCoroutine(WaitReset(inbetweenPatternDuration));
+        Debug.Log($"Validated Pattern");
+        EndSequence(inbetweenPatternDuration);
     }
 
-    private IEnumerator WaitReset(float waitTime)
+    private async void EndSequence(float waitTime)
     {
+        Debug.Log("WAIT RESET ... WAITING FOR SCORE ...");
+
+        await ScoreManager.Instance.RegisterPointsScore(SmokeManager.Instance.GetSmokePoints());
+
+        Debug.Log("SCORE REGISTERED");
+        isEnding = true;
+
         SmokeManager.Instance?.ClearTargets();
 
-        yield return new WaitForSeconds(waitTime);
+        await Task.Delay(Mathf.RoundToInt(waitTime * 1000));
 
         SmokeManager.Instance?.ClearSmoke();
         SmokeManager.Instance?.GeneratePointTargets();
-        endingRoutine = null;
+        isEnding = false;
     }
 
     private void OnGUI()
     {
-        if (endingRoutine == null) return;
+        if (isEnding) return;
         GUI.TextField(new Rect(Screen.width / 2f - 250f / 2f, Screen.height - 32, 250, 35), $"Nice Job ! Resetting ...");
     }
 }
