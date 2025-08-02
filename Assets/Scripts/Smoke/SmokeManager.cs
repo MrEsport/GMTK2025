@@ -6,8 +6,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-using Random = UnityEngine.Random;
-
 public class SmokeManager : MonoBehaviour
 {
     private static SmokeManager instance;
@@ -21,8 +19,10 @@ public class SmokeManager : MonoBehaviour
     [SerializeField] private Vector2[] targetsPositions;
     private List<SmokePointTarget> smokePointTargets = new();
 
-    private Coroutine endingRoutine = null;
-    private bool isEnding = false;
+    //private Coroutine endingRoutine = null;
+    private bool isPatternCompleted = false;
+
+    public event Action OnPatternValidated = () => { };
 
     private void Awake()
     {
@@ -34,14 +34,9 @@ public class SmokeManager : MonoBehaviour
         instance = this;
     }
 
-    private void Start()
-    {
-        GeneratePointTargets();
-    }
-
     private void Update()
     {
-        if (isEnding) return;
+        if (isPatternCompleted) return;
         if (targetsPositions.Length <= 0 || smokeParticles.Count <= 1) return;
 
         foreach (var point in smokeParticles)
@@ -49,7 +44,7 @@ public class SmokeManager : MonoBehaviour
             if (!smokePointTargets.Any(t => !t.isValid))
             {
                 // ALL TARGETS VALID : RESET TARGETS
-                endingRoutine = StartCoroutine(WaitReset(2.5f));
+                OnPatternValidated.Invoke();
                 break;
             }
 
@@ -78,28 +73,7 @@ public class SmokeManager : MonoBehaviour
         smokeParticles.Add(point);
     }
 
-    private void DestroyCallback(GameObject obj)
-    {
-        Destroy(obj);
-    }
-
-    private void ClearSmoke()
-    {
-        foreach (var smoke in smokeParticles)
-            smoke.Dispose();
-
-        smokeParticles.Clear();
-    }
-
-    private void ClearTargets()
-    {
-        foreach (var target in smokePointTargets)
-            target.Dispose();
-        smokePointTargets.Clear();
-        targetsPositions = new Vector2[0];
-    }
-
-    private void GeneratePointTargets()
+    public void GeneratePointTargets()
     {
         targetsPositions = patternHolder.Library.Random().patternPositions;
 
@@ -109,19 +83,29 @@ public class SmokeManager : MonoBehaviour
         {
             Instantiate(smokeTargetPrefab).GetComponent<SmokeTargetHandler>().Init(t);
         });
+
+        isPatternCompleted = false;
     }
 
-    private IEnumerator WaitReset(float waitTime)
+    public void ClearSmoke()
     {
-        isEnding = true;
-        ClearTargets();
-        
-        yield return new WaitForSeconds(waitTime);
+        foreach (var smoke in smokeParticles)
+            smoke.Dispose();
 
-        ClearSmoke();
-        GeneratePointTargets();
-        endingRoutine = null;
-        isEnding = false;
+        smokeParticles.Clear();
+    }
+
+    public void ClearTargets()
+    {
+        foreach (var target in smokePointTargets)
+            target.Dispose();
+        smokePointTargets.Clear();
+        targetsPositions = new Vector2[0];
+    }
+
+    private void DestroyCallback(GameObject obj)
+    {
+        Destroy(obj);
     }
 
     private void OnDrawGizmos()
@@ -140,9 +124,6 @@ public class SmokeManager : MonoBehaviour
     {
         int validTargets = smokePointTargets.Count(t => t.isValid);
         GUI.TextField(new Rect(0, 0, 250, 30), $"Targets : {validTargets} / {smokePointTargets.Count()}");
-
-        if (isEnding)
-            GUI.TextField(new Rect(Screen.width / 2f - 250f / 2f, Screen.height - 32, 250, 35), $"Nice Job ! Resetting ...");
 
         if (GUI.Button(new Rect(Screen.width - 200, 0, 200, 30), "RESET TARGETS"))
         {
