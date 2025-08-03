@@ -32,8 +32,6 @@ public class ScoreManager : MonoBehaviour
 
             uiHandler.SetScoreText(patternScore, addedScore);
         }
-
-        Debug.Log($"Score: {patternScore} = " + points.ContentToString(p => $"+{ComputePointScore(p)}"));
     }
 
     private int ComputePointScore(SmokePointTarget point)
