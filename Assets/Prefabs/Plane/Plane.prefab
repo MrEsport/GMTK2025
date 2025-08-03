@@ -63,7 +63,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   smokeParticle: {fileID: 7461514303957562732, guid: b9c5d772028c95742a0b8a2d84f60de5, type: 3}
   stats: {fileID: 11400000, guid: 0f2bef4e0444d0a4eb4a45286a4d5493, type: 2}
-  infiniteReserve: 0
+  infiniteReserve: 1
   reserveAmount: 0
 --- !u!1 &7143234055930859823
 GameObject:
