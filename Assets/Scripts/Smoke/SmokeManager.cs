@@ -1,6 +1,5 @@
 using NaughtyAttributes;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,10 +18,11 @@ public class SmokeManager : MonoBehaviour
     [SerializeField] private Vector2[] targetsPositions;
     private List<SmokePointTarget> smokePointTargets = new();
 
-    //private Coroutine endingRoutine = null;
+    private Queue<string> patternNames;
     private bool isPatternCompleted = false;
 
     public event Action OnPatternValidated = () => { };
+    public event Action OnPatternQueueEmptied = () => { };
 
     private void Awake()
     {
@@ -54,17 +54,20 @@ public class SmokeManager : MonoBehaviour
         smokeParticles.Add(point);
     }
 
+    public void GetAvailablePatterns()
+    {
+        patternNames = new Queue<string>(patternHolder.GetKeys());
+    }
+
     public void GeneratePointTargets()
     {
-        targetsPositions = patternHolder.Library.Random().patternPositions;
-
-        smokePointTargets = targetsPositions.Select(p => new SmokePointTarget(p)).ToList();
-
-        smokePointTargets.ForEach(t =>
+        if (patternNames.Count == 0)
         {
-            Instantiate(smokeTargetPrefab).GetComponent<SmokeTargetHandler>().Init(t);
-        });
+            OnPatternQueueEmptied.Invoke();
+            return;
+        }
 
+        SetTargets(patternHolder[patternNames.Dequeue()]);
         isPatternCompleted = false;
     }
 
@@ -110,6 +113,16 @@ public class SmokeManager : MonoBehaviour
         }
     }
 
+    private void SetTargets(Vector2[] positions)
+    {
+        targetsPositions = positions;
+        smokePointTargets = targetsPositions.Select(p => new SmokePointTarget(p)).ToList();
+        smokePointTargets.ForEach(t =>
+        {
+            Instantiate(smokeTargetPrefab).GetComponent<SmokeTargetHandler>().Init(t);
+        });
+    }
+
     private void OnDrawGizmos()
     {
         if (smokePointTargets.Count <= 0) return;
@@ -129,7 +142,7 @@ public class SmokeManager : MonoBehaviour
         {
             ClearSmoke();
             ClearTargets();
-            GeneratePointTargets();
+            SetTargets(patternHolder.Library.Random().patternPositions);
         }
         if (GUI.Button(new Rect(Screen.width - 200, 32, 200, 30), "CLEAR SMOKE"))
             ClearSmoke();

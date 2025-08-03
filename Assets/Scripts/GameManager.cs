@@ -7,10 +7,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] float inbetweenPatternDuration = 2.5f;
 
     private bool isEnding = false;
+    private bool theEnd = false;
 
     private void Start()
     {
         SmokeManager.Instance.OnPatternValidated += PatternValidated;
+        SmokeManager.Instance.OnPatternQueueEmptied += PatternQueueCompleted;
+
+        SmokeManager.Instance.GetAvailablePatterns();
 
         NextPattern();
     }
@@ -28,10 +32,10 @@ public class GameManager : MonoBehaviour
 
     private void PatternValidated()
     {
-        EndSequence(inbetweenPatternDuration);
+        NextPatternSequence(inbetweenPatternDuration);
     }
 
-    private async void EndSequence(float waitTime)
+    private async void NextPatternSequence(float waitTime)
     {
         await ScoreManager.Instance.RegisterPointsScore(SmokeManager.Instance.GetSmokePoints());
 
@@ -46,9 +50,21 @@ public class GameManager : MonoBehaviour
         isEnding = false;
     }
 
+    private void PatternQueueCompleted()
+    {
+        theEnd = true;
+    }
+
     private void OnGUI()
     {
-        if (isEnding) return;
-        GUI.TextField(new Rect(Screen.width / 2f - 250f / 2f, Screen.height - 32, 250, 35), $"Nice Job ! Resetting ...");
+        if (theEnd)
+        {
+            GUI.TextField(new Rect(Screen.width / 2f - 250f, Screen.height / 2f - 45, 500f, 43f), $"You Completed Every Pattern Request !\nYour Score is {ScoreManager.Instance.Score}");
+            if (GUI.Button(new Rect(Screen.width / 2f - 250f / 2f, Screen.height / 2f + 2, 200f, 35f), "Back To Menu"))
+                SceneManager.Instance?.LoadMenu();
+        }
+
+        if (isEnding)
+            GUI.TextField(new Rect(Screen.width / 2f - 125f, Screen.height - 32f, 250f, 35f), $"Nice Job ! Resetting ...");
     }
 }

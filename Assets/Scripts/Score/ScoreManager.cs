@@ -14,6 +14,8 @@ public class ScoreManager : MonoBehaviour
 
     private int score = 0;
 
+    public int Score { get => score; }
+
     private void Awake()
     {
         if (instance != null)

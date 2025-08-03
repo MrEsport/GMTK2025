@@ -12,6 +12,13 @@ public class PatternHolder : ScriptableObject
 {
     [field: SerializeField] public List<KeyPattern> Library { get; private set; }
 
+    public IEnumerable<string> GetKeys()
+    {
+        return Library.Select(kp => kp.key);
+    }
+
+    public Vector2[] this[string key] { get => Library.First(kp => kp.key == key).patternPositions; }
+
     [Serializable]
     public class KeyPattern
     {
