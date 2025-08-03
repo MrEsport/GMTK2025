@@ -1,6 +1,7 @@
 using NaughtyAttributes;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class PatternMaker : MonoBehaviour
@@ -16,11 +17,15 @@ public class PatternMaker : MonoBehaviour
     [SerializeField, BoxGroup("Handles"), Required] public Transform endTangent;
 
     [SerializeField, BoxGroup] PatternMode mode;
+    
     [SerializeField, Range(0f, 2f), BoxGroup] float pointsAmountFactor;
-    [SerializeField, Range(0f, 1f), BoxGroup, ShowIf(nameof(UseCircle))] float circleArcThreshold = 1f;
-
+    
     [SerializeField, BoxGroup, ShowIf(nameof(StartedPatternPositions))] bool trimPointsByDistance = false;
     [SerializeField, Range(0f, 2f), BoxGroup, ShowIf(EConditionOperator.And, nameof(StartedPatternPositions), nameof(trimPointsByDistance))] float trimRangeFactor;
+
+    [SerializeField, Range(0f, 1f), BoxGroup, ShowIf(nameof(UseCircle))] float circleArcThreshold = 1f;
+    
+    [SerializeField, BoxGroup("Validation"), ShowIf(nameof(StartedPatternPositions))] string patternName;
 
     private List<Vector2> patternPositions = new List<Vector2>();
 
@@ -28,8 +33,8 @@ public class PatternMaker : MonoBehaviour
 
     private bool RequiredComponentsValid { get => stats != null && startHandle != null && endHandle != null; }
     private bool StartedPatternPositions { get => patternPositions.Count > 0; }
-    private bool UseBezier { get => mode == PatternMode.BEZIER; }
     private bool UseCircle { get => mode == PatternMode.CIRCLE; }
+    private bool NameFilledIn { get => patternName != string.Empty; }
 
     private void OnDrawGizmos()
     {
@@ -104,13 +109,21 @@ public class PatternMaker : MonoBehaviour
         patternPositions.AddRange(pointsPositions);
     }
 
-    [Button("Clear Current Positions"), ShowIf(nameof(StartedPatternPositions))]
-    private void ClearPositions() => patternPositions.Clear();
+    [Button("Clear Current Pattern"), ShowIf(nameof(StartedPatternPositions))]
+    private void ClearPattern()
+    {
+        patternPositions.Clear();
+        patternName = string.Empty;
+    }
 
 
-    [Button("Make Pattern"), ShowIf(nameof(StartedPatternPositions))]
+    [Button("Make Pattern"), ShowIf(nameof(StartedPatternPositions)), EnableIf(nameof(NameFilledIn))]
     private void ValidatePattern()
     {
-        patternHolder.AddPattern(patternPositions.ToArray());
+        if (!patternHolder.AddPattern(patternName, patternPositions.ToArray()))
+            return;
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 }
