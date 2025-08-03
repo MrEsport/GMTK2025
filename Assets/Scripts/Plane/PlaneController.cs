@@ -10,6 +10,11 @@ public class PlaneController : MonoBehaviour
 
     private Vector2 moveDirection = Vector2.up;
 
+    private void Update()
+    {
+        CheckForPositionOutsideScreen();
+    }
+
     private void FixedUpdate()
     {
         float moveSpeed = stats.Plane.moveSpeed;
