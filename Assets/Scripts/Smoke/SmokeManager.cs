@@ -56,7 +56,7 @@ public class SmokeManager : MonoBehaviour
 
     public void GetAvailablePatterns()
     {
-        patternNames = new Queue<string>(patternHolder.GetKeys());
+        patternNames = new Queue<string>(patternHolder.GetKeys().Shuffle());
     }
 
     public void GeneratePointTargets()
