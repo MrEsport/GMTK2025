@@ -1,15 +1,18 @@
 using TMPro;
 using UnityEngine;
 
+using Random = UnityEngine.Random;
+
 public class ScoreUIHandler : MonoBehaviour
 {
-    [SerializeField] GameObject addedScorePopup;
     [SerializeField] TMP_Text scoreTextUI;
-    [SerializeField] int startScore;
+
+    [SerializeField] TMP_Text scorePopupUI;
+    [SerializeField] PopupUIHandler popupHandler;
 
     private void Start()
     {
-        SetScoreText(startScore);
+        scorePopupUI.gameObject.SetActive(false);
     }
 
     public void SetScoreText(int score)
@@ -23,8 +26,15 @@ public class ScoreUIHandler : MonoBehaviour
         HandleScorePopup(addedScore);
     }
 
+    public void HidePopup() => popupHandler.DelayHide(1f);
+
     private void HandleScorePopup(int score)
     {
+        scorePopupUI.gameObject.SetActive(true);
 
+        scorePopupUI.text = score.ToString();
+        Vector3 rot = Vector3.zero;
+        rot.z = Random.Range(-10f, 10f);
+        scorePopupUI.rectTransform.localRotation = Quaternion.Euler(rot);
     }
 }

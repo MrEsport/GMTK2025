@@ -8,7 +8,11 @@ public class ScoreManager : MonoBehaviour
     public static ScoreManager Instance { get => instance; }
 
     [SerializeField, Required] GameStats stats; 
-    [SerializeField, Required] ScoreUIHandler uiHandler; 
+    [SerializeField, Required] ScoreUIHandler uiHandler;
+
+    [SerializeField] int startScore;
+
+    private int score = 0;
 
     private void Awake()
     {
@@ -20,18 +24,26 @@ public class ScoreManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        score = startScore;
+        uiHandler.SetScoreText(score);
+    }
+
     public async Task RegisterPointsScore(SmokePointTarget[] points)
     {
-        int patternScore = 0, addedScore = 0;
+        int patternScore = 0;
         for (int i = 0; i < points.Length; ++i)
         {
             await Task.Delay(50);
 
-            addedScore = ComputePointScore(points[i]);
-            patternScore += addedScore;
+            patternScore += ComputePointScore(points[i]);
 
-            uiHandler.SetScoreText(patternScore, addedScore);
+            uiHandler.SetScoreText(score + patternScore, patternScore);
         }
+
+        score += patternScore;
+        uiHandler.HidePopup();
     }
 
     private int ComputePointScore(SmokePointTarget point)
