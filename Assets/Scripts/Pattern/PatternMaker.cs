@@ -103,6 +103,15 @@ public class PatternMaker : MonoBehaviour
         return points.Where(point => !patternPositions.Any(pos => (point - pos).sqrMagnitude < stats.Score.smokeValidRange * trimRangeFactor)).ToArray();
     }
 
+#if UNITY_EDITOR
+    [Button("Swap Handle Positions"), ShowIf(nameof(RequiredComponentsValid))]
+    private void SwapHandles()
+    {
+        Vector2 tempPos = startHandle.position;
+        startHandle.position = endHandle.position;
+        endHandle.position = tempPos;
+    }
+
     [Button("Add Positions"), ShowIf(nameof(RequiredComponentsValid))]
     private void AddPosition()
     {
@@ -116,7 +125,6 @@ public class PatternMaker : MonoBehaviour
         patternName = string.Empty;
     }
 
-
     [Button("Make Pattern"), ShowIf(nameof(StartedPatternPositions)), EnableIf(nameof(NameFilledIn))]
     private void ValidatePattern()
     {
@@ -126,4 +134,5 @@ public class PatternMaker : MonoBehaviour
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
+#endif
 }
