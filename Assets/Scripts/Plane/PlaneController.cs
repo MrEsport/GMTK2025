@@ -35,4 +35,27 @@ public class PlaneController : MonoBehaviour
         if (!context.started) return;
         transform.position = Vector3.zero;
     }
+
+    private void CheckForPositionOutsideScreen()
+    {
+        Vector2 screenPos = Camera.main.WorldToScreenPoint(transform.position);
+        Vector2 screenPosRatio = screenPos / Camera.main.pixelRect.size;
+        Vector2 directionFromCenter = (screenPosRatio - Vector2.one * .5f) * 2f;
+
+        Vector2 flipFactor = new Vector2(
+            Mathf.Clamp(1.03f - Mathf.Abs(directionFromCenter.x), -1f, 0f),
+            Mathf.Clamp(1.05f - Mathf.Abs(directionFromCenter.y), -1f, 0f));
+
+        if (flipFactor.x >= 0f && flipFactor.y >= 0f) return;
+
+        Vector2 dotVector = moveDirection * directionFromCenter;
+        FlipDirection(dotVector * flipFactor);
+    }
+
+    private void FlipDirection(Vector2 flip)
+    {
+        flip.x = Mathf.Sign(flip.x);
+        flip.y = Mathf.Sign(flip.y);
+        moveDirection *= flip;
+    }
 }
