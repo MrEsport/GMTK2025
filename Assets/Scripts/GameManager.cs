@@ -28,17 +28,13 @@ public class GameManager : MonoBehaviour
 
     private void PatternValidated()
     {
-        Debug.Log($"Validated Pattern");
         EndSequence(inbetweenPatternDuration);
     }
 
     private async void EndSequence(float waitTime)
     {
-        Debug.Log("WAIT RESET ... WAITING FOR SCORE ...");
-
         await ScoreManager.Instance.RegisterPointsScore(SmokeManager.Instance.GetSmokePoints());
 
-        Debug.Log("SCORE REGISTERED");
         isEnding = true;
 
         SmokeManager.Instance?.ClearTargets();

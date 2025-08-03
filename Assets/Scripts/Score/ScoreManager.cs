@@ -1,8 +1,5 @@
 using NaughtyAttributes;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
@@ -11,6 +8,7 @@ public class ScoreManager : MonoBehaviour
     public static ScoreManager Instance { get => instance; }
 
     [SerializeField, Required] GameStats stats; 
+    [SerializeField, Required] ScoreUIHandler uiHandler; 
 
     private void Awake()
     {
@@ -24,11 +22,15 @@ public class ScoreManager : MonoBehaviour
 
     public async Task RegisterPointsScore(SmokePointTarget[] points)
     {
-        int patternScore = 0;
+        int patternScore = 0, addedScore = 0;
         for (int i = 0; i < points.Length; ++i)
         {
             await Task.Delay(50);
-            patternScore += ComputePointScore(points[i]);
+
+            addedScore = ComputePointScore(points[i]);
+            patternScore += addedScore;
+
+            uiHandler.SetScoreText(patternScore, addedScore);
         }
 
         Debug.Log($"Score: {patternScore} = " + points.ContentToString(p => $"+{ComputePointScore(p)}"));
