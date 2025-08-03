@@ -37,7 +37,7 @@ public class ScoreManager : MonoBehaviour
         int patternScore = 0;
         for (int i = 0; i < points.Length; ++i)
         {
-            await Task.Delay(50);
+            await Awaitable.WaitForSecondsAsync(0.05f);
 
             patternScore += ComputePointScore(points[i]);
 

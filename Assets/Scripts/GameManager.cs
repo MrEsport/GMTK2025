@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
 
         SmokeManager.Instance?.ClearTargets();
 
-        await Task.Delay(Mathf.RoundToInt(waitTime * 1000));
+        await Awaitable.WaitForSecondsAsync(waitTime);
 
         SmokeManager.Instance?.ClearSmoke();
         SmokeManager.Instance?.GeneratePointTargets();
